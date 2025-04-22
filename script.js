@@ -11,40 +11,59 @@
 
     async function getWeather(city) {
         try {
+            if (!city) {
+                errorMessage.innerHTML = "Please enter a city name.";
+                weatherInfo.classList.add('hidden');
+                return;
+            }
+    
             const response = await fetch(
                 `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
             );
-            const data = await response.json();
     
-            if (city) { // Check if the API response is successful
-                cityName.innerHTML = `Weather in ${city}`;
-                temperature.innerHTML = `Temperature: ${data.main.temp} °C`;
-                description.innerHTML = `Description: ${data.weather[0].description}`;
-                humidity.innerHTML = `Humidity: ${data.main.humidity}%`;
-                errorMessage.innerHTML = ""; // Clear any previous error message
-                weatherInfo.classList.remove('hidden');
-            } else {
-                errorMessage.innerHTML = "Error fetching weather. Please try again.";
+            if (!response.ok) {
+                if (response.status === 404) {
+                    errorMessage.innerHTML = "City not found. Please check the city name.";
+                }else {
+                    errorMessage.innerHTML = "An error occurred. Please try again later.";
+                }
                 weatherInfo.classList.add('hidden');
+                return;
             }
     
-            console.log(`Weather in ${city}:`);
-            console.log(`Temperature:, ${data.main.temp}°C`);
+            const data = await response.json();
+    
+            cityName.innerHTML = `Weather in ${data.name}`;
+            temperature.innerHTML = `Temperature: ${data.main.temp} °C`;
+            description.innerHTML = `Description: ${data.weather[0].description}`;
+            humidity.innerHTML = `Humidity: ${data.main.humidity}%`;
+            errorMessage.innerHTML = ""; // Clear any previous error message
+            weatherInfo.classList.remove('hidden');
+    
+            console.log(`Weather in ${data.name}:`);
+            console.log(`Temperature: ${data.main.temp}°C`);
             console.log("Description:", data.weather[0].description);
             console.log("Humidity:", data.main.humidity, "%");
     
             return data;
         } catch (error) {
             console.error("Error fetching weather:", error);
-            errorMessage.innerHTML = "Error fetching weather. Please try again.";
-            
+            errorMessage.innerHTML = "Network error. Please check your connection and try again.";
+            weatherInfo.classList.add('hidden');
         }
     }
     
-    // Usage
+
     searchBtn.addEventListener('click', function() {
         getWeather(city.value);
         city.value = '';
+    });
+    document.addEventListener('keypress', function(e){
+        if (e.key === "Enter") {
+            getWeather(city.value);
+            city.value = '';
+        }
+        
     });
 
 // let read = 'true';
